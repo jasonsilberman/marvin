@@ -1,7 +1,5 @@
 <?php
 
-ini_set('display_errors', true);
-
 class OneEq1 extends MarvinTestCase {
 	function greetings() {
 		assertEquals('hi', 'hi');

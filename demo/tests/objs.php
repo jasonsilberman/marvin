@@ -1,7 +1,5 @@
 <?php
 
-ini_set('display_errors', true);
-
 class Objs extends MarvinTestCase {
 	function test1Scrict() {
 		$t = new stdClass;
