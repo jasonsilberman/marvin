@@ -12,7 +12,7 @@ All you have to do is download the file located in `bin/marvin` and make it exec
 ## Usage
 Using Marvin requires two steps.
 
-1. Create test cases
+1. Create test cases.
 2. Run Marvin.
 
 ### Creating Test Cases
