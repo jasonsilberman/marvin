@@ -34,7 +34,7 @@ class OneEq1 extends MarvinTestCase {
 
 That test case would live in a file named `one_eq_1.php`, or `oneEq1.php` (capitalization shouldn't matter).
 
-### Run Marvin
+### Running Marvin
 Marvin is just a CLI. This is all you do:
 
 ```
