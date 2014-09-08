@@ -7,6 +7,8 @@ Marvin is a simple PHP testing script.
 ## Installation
 All you have to do is download the file located in `bin/marvin` and make it executable. Marvin is just one file.
 
+*You might also want to add it to your `$PATH`.*
+
 ## Usage
 Using Marvin requires two steps.
 
