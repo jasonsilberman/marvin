@@ -1,0 +1,134 @@
+#!/usr/bin/php -q
+<?php
+
+ini_set('display_errors', true);
+
+require_once dirname(__FILE__) . '/colors.php';
+
+function endsWith($haystack, $needle) {
+	return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
+}
+
+class MarvinException extends Exception {}
+class MarvinAssertionFailure extends MarvinException {}
+class MarvinTestCase {}
+
+function assertEquals($one, $two, $strict = true) {
+	if (! (equal($one, $two, $strict))) {
+		$one_string = $one;
+		$two_string = $two;
+
+		if (gettype($one) !== 'string') {
+			$one_string = json_encode($one);
+		}
+		if (gettype($two) !== 'string') {
+			$two_string = json_encode($two);
+		}
+		throw new MarvinAssertionFailure("expected {$one_string} to equal {$two_string}");
+	}
+}
+
+function assertTrue($one, $strict = true) {
+	assertEquals(true, $one, $strict);
+}
+
+function assertFalse($one, $strict = true) {
+	assertEquals(false, $one, $strict);
+}
+
+function equal($one, $two, $strict) {
+	if ($strict) {
+		return $one === $two;
+	} else {
+		return $one == $two;
+	}
+}
+
+array_shift($argv);
+
+if (is_null($argv[0])) {
+	throw new Exception('Cannot test nothingness.');
+}
+
+$dir = getcwd() . '/' . $argv[0];
+if (! endsWith($dir, '/')) {
+	$dir .= '/';
+}
+
+$dir .= '*.php';
+
+$startTime = time();
+
+print 'Working...' . PHP_EOL . '-----------' . PHP_EOL . PHP_EOL;
+
+foreach (glob($dir) as $file) {
+	Handler::handleFile($file);
+}
+
+$endTime = time();
+
+$colors = new Colors;
+
+if (Handler::$failedCount === 0)  {
+	print $colors->stringWithColors('✔ Finished ' . Handler::$passCount . ' tests (' . ($endTime - $startTime) . 's)', 'green');
+} else {
+	print 'Finished ' . (Handler::$passCount + Handler::$failedCount) . ' tests (' . ($endTime - $startTime) . 's)' . PHP_EOL;
+	print $colors->stringWithColors(Handler::$passCount . ' passed', 'green') . PHP_EOL;
+	print $colors->stringWithColors(Handler::$failedCount . ' failed', 'red');
+}
+
+class Handler {
+	public static $passCount = 0, $failedCount = 0;
+	public static function handleFile($path) {
+		$colors = new Colors;
+		print 'Found test file: ' . $colors->stringWithColors($path, 'blue') . PHP_EOL;
+
+		$fileName = array_shift(explode('.', array_pop(explode('/', $path))));
+		$className = $fileName;
+		if (strpos($className, '_') !== false) {
+			$classNameParts = explode('_', $className);
+			foreach ($classNameParts as $i => $n) {
+				$classNameParts[$i] = ucfirst($n);
+			}
+			$className = implode('', $classNameParts);
+		}
+
+		require_once $path;
+
+		$testClass = new $className;
+		
+		$class_methods = get_class_methods($testClass);
+		print PHP_EOL . 'Class ' . $colors->stringWithColors(ucfirst($className), 'blue') . PHP_EOL;
+
+		foreach ($class_methods as $method) {
+			try {
+				$testClass->{$method}();
+				static::$passCount++;
+				print '- \'' . $method . '\' ' . $colors->stringWithColors('passed.', 'green') . PHP_EOL;
+			} catch (MarvinException $e) {
+				static::$failedCount++;
+				print '- \'' . $method . '\' ' . $colors->stringWithColors('failed:', 'red') . PHP_EOL;
+				Handler::handleFailure($e);
+			}
+		}
+
+		print PHP_EOL . '-----------' . PHP_EOL . PHP_EOL;
+	}
+	public static function handleFailure(MarvinException $e) {
+		$colors = new Colors;
+		$tab = '    ';
+
+		print $tab . $colors->stringWithColors(get_class($e), 'dark_gray') . ': ' . $colors->stringWithColors($e->getMessage(), 'red') . PHP_EOL . PHP_EOL;
+
+		$traces = $e->getTrace();
+		array_pop($traces);
+		
+		foreach ($traces as $i => $trace) {
+			print $colors->stringWithColors(($i == 0 ? $tab : ($tab . $tab)) . 'at ' . ($trace['class'] ? $trace['class'] . '->' : '') . $trace['function'] . ' (' . $trace['file'] . ':' . $trace['line'] . ')') . PHP_EOL;
+		}
+
+		print PHP_EOL;
+	}
+}
+
+print PHP_EOL; exit; ?>
