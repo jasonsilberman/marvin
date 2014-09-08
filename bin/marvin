@@ -98,7 +98,7 @@ class Handler {
 		$testClass = new $className;
 		
 		$class_methods = get_class_methods($testClass);
-		print PHP_EOL . 'Class ' . $colors->stringWithColors(ucfirst($className), 'blue') . PHP_EOL;
+		print PHP_EOL . 'Class ' . $colors->stringWithColors(ucfirst(get_class($testClass)), 'blue') . PHP_EOL;
 
 		foreach ($class_methods as $method) {
 			try {
